@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrivingJobs.online — ROI Calculator</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --black: #0a0a0a;
+            --orange: #e03c31;
+            --orange-dark: #c0342a;
+            --white: #f8f6f0;
+            --beige: #f3f1eb;
+            --gray: #1e1e1e;
+            --gray-light: #2e2e2e;
+            --green: #2ecc71;
+            --text-muted: #666;
+            --text-dark: #111;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--beige);
+            color: var(--text-dark);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 80px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: px;
+            font-weight: 800;
+            text-transform: lowercase;
+            margin-bottom: 0;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            line-height: 1;
+        }
+
+        .logo span.driving {
+            color: #D85A30;
+            /* Exact Brand Orange */
+        }
+
+        .logo span.jobs {
+            color: #1A1A18;
+            /* Exact Brand Dark */
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(56px, 12vw, 110px);
+            line-height: 0.85;
+            letter-spacing: -0.02em;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+            text-transform: uppercase;
+        }
+
+        h1 em {
+            color: var(--orange);
+            font-style: normal;
+        }
+
+        .subhead {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 520px;
+            margin: 0 auto;
+            font-weight: 400;
+        }
+
+        /* CALCULATOR CARD */
+        .calc-card {
+            background: #ffffff;
+            border: 1px solid #e0ddd5;
+            border-radius: 8px;
+            padding: 56px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .calc-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--orange);
+        }
+
+        .input-group {
+            margin-bottom: 40px;
+        }
+
+        .input-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            display: block;
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-prefix {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            color: var(--orange);
+            padding: 0 20px;
+            background: #fdfcf9;
+            border: 2px solid #e0ddd5;
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        #indeed-spend {
+            width: 100%;
+            height: 72px;
+            background: #ffffff;
+            border: 2px solid #e0ddd5;
+            border-radius: 0 4px 4px 0;
+            color: var(--text-dark);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 40px;
+            padding: 0 24px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #indeed-spend:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 4px rgba(224, 60, 49, 0.1);
+        }
+
+        .slider-wrapper {
+            margin-top: 24px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e0ddd5;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(224, 60, 49, 0.3);
+            border: 3px solid #fff;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(224, 60, 49, 0.4);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: #777;
+            font-weight: 700;
+        }
+
+        /* RESULTS */
+        .results {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            margin-top: 40px;
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .result-box {
+            background: #fdfcf9;
+            padding: 32px 24px;
+            border: 1px solid #e0ddd5;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .result-box.savings {
+            background: var(--orange);
+            grid-column: span 3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px;
+            border: none;
+            color: #fff;
+        }
+
+        .result-box-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .result-box.savings .result-box-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+        }
+
+        .result-value {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            line-height: 1;
+            color: var(--text-dark);
+        }
+
+        .result-box.savings .result-value {
+            font-size: 80px;
+            color: #fff;
+        }
+
+        .savings-badge {
+            background: #fff;
+            color: var(--orange);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 0.05em;
+            padding: 12px 24px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .result-box.indeed {
+            border-top: 4px solid #db2777;
+        }
+
+        .result-box.drivingjobs {
+            border-top: 4px solid var(--green);
+        }
+
+        .result-box.annual {
+            border-top: 4px solid var(--text-dark);
+        }
+
+        .result-box.indeed .result-value {
+            color: #db2777;
+        }
+
+        .result-box.drivingjobs .result-value {
+            color: var(--green);
+        }
+
+        .result-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* SECTION DIVIDER */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin: 80px 0 48px;
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0ddd5;
+        }
+
+        .section-divider-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-weight: 700;
+        }
+
+        /* WHY SECTION */
+        .why-section {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .why-section.visible {
+            display: block;
+        }
+
+        .why-heading {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            margin-bottom: 40px;
+            line-height: 0.95;
+            text-align: center;
+        }
+
+        .why-heading em {
+            color: var(--orange);
+            font-style: normal;
+        }
+
+        .reasons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .reason-card {
+            background: #ffffff;
+            border: 1px solid #e0ddd5;
+            padding: 40px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .reason-card:hover {
+            border-color: var(--orange);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .reason-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 56px;
+            color: #d0cdc5;
+            line-height: 1;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .reason-card:hover .reason-num {
+            color: var(--orange);
+            opacity: 0.8;
+        }
+
+        .reason-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .reason-body {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* COMPARISON TABLE REDESIGN */
+        .compare-section {
+            background: #D7522D;
+            margin: 80px -24px;
+            padding: 80px 24px;
+            border-radius: 0;
+            color: #fff;
+        }
+
+        .compare-container {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .compare-header-box {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .compare-header-box h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 56px;
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+
+        .compare-table-wrapper {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        .compare-table th {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 24px;
+            text-align: left;
+            background: #fdfcf9;
+            color: var(--text-muted);
+            border-bottom: 1px solid #eee;
+        }
+
+        .compare-table th.highlight {
+            background: var(--orange);
+            color: #fff;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .compare-table td {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f3f1eb;
+            font-size: 15px;
+            color: var(--text-dark);
+            transition: background 0.2s;
+        }
+
+        .compare-table tr:hover td {
+            background: #f9f9f9;
+        }
+
+        .compare-table td.highlight-cell {
+            background: #F9E7E1;
+            font-weight: 700;
+            text-align: center;
+            border-left: 2px solid rgba(215, 82, 45, 0.1);
+            border-right: 2px solid rgba(215, 82, 45, 0.1);
+        }
+
+        .compare-table tr:hover td.highlight-cell {
+            background: #f3dad2;
+        }
+
+        .compare-table td:nth-child(2) {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .check-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--green);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .cross-icon {
+            color: #db2777;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* CONTACT SECTION */
+        .contact-section {
+            margin-top: 80px;
+        }
+
+        .contact-section.visible {
+            display: block;
+        }
+
+        .contact-card {
+            background: #ffffff;
+            border: 1px solid #e0ddd5;
+            border-radius: 8px;
+            padding: 56px;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 56px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03);
+        }
+
+        .contact-info h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 48px;
+            margin-bottom: 16px;
+            line-height: 1;
+        }
+
+        .contact-info p {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0ddd5;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: var(--orange);
+            background: #fff;
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .btn-submit {
+            background: var(--orange);
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 20px;
+            letter-spacing: 0.1em;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background: var(--orange-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(224, 60, 49, 0.2);
+        }
+
+        /* CTA SECTION */
+        .cta-section {
+            margin-top: 80px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .cta-section.visible {
+            display: block;
+        }
+
+        .cta-card {
+            background: var(--text-dark);
+            color: #fff;
+            padding: 80px 56px;
+            text-align: center;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-card::after {
+            content: 'DRIVINGJOBS';
+            position: absolute;
+            bottom: -30px;
+            right: -20px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 150px;
+            color: rgba(255, 255, 255, 0.03);
+            pointer-events: none;
+        }
+
+        .cta-headline {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 64px;
+            line-height: 0.9;
+            margin-bottom: 24px;
+        }
+
+        .cta-sub {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 48px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-register {
+            display: inline-block;
+            background: var(--orange);
+            color: #fff;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 24px;
+            letter-spacing: 0.1em;
+            padding: 20px 60px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .btn-register:hover {
+            background: #fff;
+            color: var(--text-dark);
+            transform: translateY(-4px);
+        }
+
+        /* TICKER */
+        .ticker {
+            background: var(--orange);
+            color: #fff;
+            overflow: hidden;
+            padding: 14px 0;
+            margin: 64px -24px;
+            position: relative;
+            transform: rotate(-1deg);
+            display: block;
+        }
+
+        .ticker-inner {
+            display: flex;
+            animation: ticker 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .ticker-item {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 18px;
+            letter-spacing: 0.15em;
+            padding: 0 40px;
+        }
+
+        .logo {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            text-transform: lowercase;
+            margin-bottom: 0;
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            line-height: 1;
+        }
+
+        .logo span.driving {
+            color: #D85A30;
+        }
+
+        .logo span.jobs {
+            color: #1A1A18;
+        }
+
+        .navbar {
+            background: #fff;
+            padding: 24px 60px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f1eeeb;
+            min-height: 100px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .btn-signin {
+            color: #1e1e1e;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-nav {
+            background: #D85A30;
+            color: #fff !important;
+            padding: 16px 36px;
+            text-decoration: none;
+            border-radius: 0;
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border: none;
+            display: inline-block;
+        }
+
+        .btn-nav:hover {
+            background: #1A1A18;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 200px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes ticker {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 800px) {
+            .navbar {
+                padding: 12px 20px;
+                min-height: 80px;
+            }
+
+            .navbar .logo {
+                font-size: 32px;
+            }
+
+            .btn-signin {
+                display: none;
+            }
+
+            .btn-nav {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .container {
+                padding-top: 160px;
+            }
+
+            .contact-card {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 40px 24px;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-box.savings {
+                flex-direction: column;
+                text-align: center;
+                gap: 24px;
+            }
+
+            .reasons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 48px;
+            }
+
+            .calc-card {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="https://drivingjobs.online" class="logo">
+            <span class="driving">driving</span><span class="jobs">jobs.online</span>
+        </a>
+        <div class="nav-right">
+            <a href="https://drivingjobs.online/register/company" class="btn-nav">VISIT WEBSITE</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="header">
+            <h1>STOP PAYING<br><em>TOO MUCH</em><br>FOR HIRING DRIVERS</h1>
+            <p class="subhead">See exactly how much your company will save by switching from Indeed to our flat-rate
+                platform.</p>
+        </div>
+
+        <!-- CALCULATOR -->
+        <div class="calc-card">
+            <div class="input-group">
+                <label class="input-label" for="indeed-spend">Your Monthly Indeed Spend</label>
+                <div class="input-wrapper">
+                    <div class="currency-prefix">$</div>
+                    <input type="number" id="indeed-spend" placeholder="5000" min="0" max="100000" step="100"
+                        oninput="calculate()">
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="spend-slider" min="500" max="20000" step="100" value="5000"
+                        oninput="syncSlider(this.value)">
+                    <div class="slider-labels">
+                        <span>$500/mo</span>
+                        <span>$5,000/mo</span>
+                        <span>$10,000/mo</span>
+                        <span>$20,000/mo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS -->
+            <div class="results" id="results">
+                <div class="results-grid">
+                    <div class="result-box indeed">
+                        <div class="result-box-label">Indeed / month</div>
+                        <div class="result-value" id="val-indeed">—</div>
+                    </div>
+                    <div class="result-box drivingjobs">
+                        <div class="result-box-label">DrivingJobs / month</div>
+                        <div class="result-value">$249</div>
+                        <div class="result-note">Flat rate — unlimited listings</div>
+                    </div>
+                    <div class="result-box annual">
+                        <div class="result-box-label">Annual Savings</div>
+                        <div class="result-value" id="val-annual">—</div>
+                    </div>
+                </div>
+                <div class="result-box savings">
+                    <div>
+                        <div class="result-box-label">Your Monthly Savings</div>
+                        <div class="result-value" id="val-savings">—</div>
+                    </div>
+                    <div class="savings-badge" id="pct-badge">—% LESS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TICKER -->
+        <div class="ticker" id="ticker" style="display:none;">
+            <div class="ticker-inner">
+                <span class="ticker-item">QUALIFIED TOW TRUCK DRIVERS</span>
+                <span class="ticker-item">BOX TRUCK SPECIALISTS</span>
+                <span class="ticker-item">VERIFIED DOT CREDENTIALS</span>
+                <span class="ticker-item">$249 FLAT RATE</span>
+                <span class="ticker-item">ACTIVELY SEARCHING CANDIDATES</span>
+                <span class="ticker-item">QUALIFIED TOW TRUCK DRIVERS</span>
+                <span class="ticker-item">BOX TRUCK SPECIALISTS</span>
+                <span class="ticker-item">VERIFIED DOT CREDENTIALS</span>
+                <span class="ticker-item">$249 FLAT RATE</span>
+                <span class="ticker-item">ACTIVELY SEARCHING CANDIDATES</span>
+            </div>
+        </div>
+
+        <!-- WHY SECTION -->
+        <div class="why-section" id="why-section">
+            <div class="section-divider">
+                <span class="section-divider-label">The DrivingJobs Advantage</span>
+            </div>
+
+            <div class="why-heading">INDEED CHARGES MORE.<br>THESE ARE THE <em>FACTS.</em></div>
+
+            <div class="reasons-grid">
+                <div class="reason-card">
+                    <div class="reason-num">01</div>
+                    <div class="reason-title">Built for Drivers</div>
+                    <div class="reason-body">Every candidate is pre-vetted for the towing and box truck industry. No
+                        more sifting through generic resumes.</div>
+                </div>
+                <div class="reason-card">
+                    <div class="reason-num">02</div>
+                    <div class="reason-title">Verified Credentials</div>
+                    <div class="reason-body">View DOT cards, CDL certifications, and medical exams directly on driver
+                        profiles before you interview.</div>
+                </div>
+                <div class="reason-card">
+                    <div class="reason-num">03</div>
+                    <div class="reason-title">No Bidding Wars</div>
+                    <div class="reason-body">Stop paying per-click. Pay one flat monthly fee and post unlimited jobs for
+                        your entire fleet.</div>
+                </div>
+                <div class="reason-card">
+                    <div class="reason-num">04</div>
+                    <div class="reason-title">Direct Pipeline</div>
+                    <div class="reason-body">Contact drivers directly via phone or email. You own the relationship from
+                        the first click.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REDESIGNED COMPARISON SECTION -->
+        <div class="compare-section">
+            <div class="compare-container">
+                <div class="compare-header-box">
+                    <h2>HOW WE <em>COMPARE</em></h2>
+                </div>
+                <div class="compare-table-wrapper">
+                    <table class="compare-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Indeed</th>
+                                <th class="highlight">DrivingJobs.online</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Industry-Specific Talent</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Flat Monthly Pricing</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Verified DOT Credentials</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Unlimited Job Listings</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Direct Driver Contact</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Proactive Profile Browsing</td>
+                                <td><span class="cross-icon">✕</span></td>
+                                <td class="highlight-cell"><span class="check-icon">✓</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT SECTION -->
+        <div class="contact-section" id="contact-section">
+            <div class="section-divider">
+                <span class="section-divider-label">Get in Touch</span>
+            </div>
+
+            <div class="contact-card">
+                <div class="contact-info">
+                    <h2>HAVE QUESTIONS?<br>WE HAVE <em>ANSWERS.</em></h2>
+                    <p>Learn how DrivingJobs can streamline your hiring process and slash your acquisition costs.</p>
+                    <div style="font-family:'Space Mono', monospace; font-size: 12px; color: var(--orange);">
+                        → notification@drivingjobs.online
+                    </div>
+                </div>
+                <form id="contact-form">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-input" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-input" placeholder="john@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" name="company" class="form-input" placeholder="Acme Towing">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">How can we help?</label>
+                        <textarea name="message" class="form-input" placeholder="I'd like to learn more about..."
+                            required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" id="submit-btn" style="position: relative;">
+                        <span id="btn-text">Submit Inquiry</span>
+                        <span id="btn-loader" style="display:none;">Sending...</span>
+                    </button>
+                    <p id="form-status" style="margin-top:16px; font-size:12px; font-weight:700; text-align:center;">
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- CTA SECTION -->
+        <div class="cta-section" id="cta-section">
+            <div class="cta-card">
+                <div class="cta-headline">READY TO HIRE<br><em>SMARTER?</em></div>
+                <p class="cta-sub">Join hundreds of tow truck and box truck companies already finding drivers on
+                    DrivingJobs.</p>
+                <a href="https://drivingjobs.online/register" class="btn-register">Get Started Now</a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function formatCurrency(n) {
+            return '$' + Math.round(n).toLocaleString('en-US');
+        }
+
+        function calculate() {
+            const rawVal = document.getElementById('indeed-spend').value;
+            const spend = parseFloat(rawVal);
+
+            if (!isNaN(spend)) {
+                const sliderVal = Math.min(Math.max(spend, 500), 20000);
+                document.getElementById('spend-slider').value = sliderVal;
+            }
+
+            if (!rawVal || isNaN(spend) || spend <= 0) {
+                toggleSections(false);
+                return;
+            }
+
+            const drivingjobsCost = 249;
+            const savings = spend - drivingjobsCost;
+            const annualSavings = savings * 12;
+            const pct = Math.round((savings / spend) * 100);
+
+            document.getElementById('val-indeed').textContent = formatCurrency(spend);
+            document.getElementById('val-savings').textContent = formatCurrency(savings);
+            document.getElementById('val-annual').textContent = formatCurrency(annualSavings);
+            document.getElementById('pct-badge').textContent = (pct > 0 ? pct : 0) + '% LESS';
+
+            toggleSections(true);
+        }
+
+        function toggleSections(show) {
+            const results = document.getElementById('results');
+            if (show) results.classList.add('visible');
+            else results.classList.remove('visible');
+
+            const sections = ['ticker', 'why-section', 'contact-section', 'cta-section'];
+            sections.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === 'ticker') {
+                    el.style.display = show ? 'block' : 'none';
+                } else {
+                    if (show) el.classList.add('visible');
+                    else el.classList.remove('visible');
+                }
+            });
+        }
+
+        function syncSlider(val) {
+            document.getElementById('indeed-spend').value = val;
+            calculate();
+        }
+
+        // Form Handling
+        const contactForm = document.getElementById('contact-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const formStatus = document.getElementById('form-status');
+
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            formStatus.textContent = '';
+
+            const formData = new FormData(contactForm);
+            const data = Object.fromEntries(formData.entries());
+
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline';
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    formStatus.style.color = 'var(--green)';
+                    formStatus.textContent = 'Message sent! We\'ll be in touch soon.';
+                    contactForm.reset();
+                } else {
+                    throw new Error(result.error || 'Something went wrong.');
+                }
+            } catch (error) {
+                formStatus.style.color = 'var(--orange)';
+                formStatus.textContent = error.message;
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        // Auto-init
+        window.onload = () => {
+            calculate();
+        };
+    </script>
+
+</body>
+
+</html>
